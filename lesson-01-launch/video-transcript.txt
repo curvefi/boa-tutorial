@@ -1,0 +1,34 @@
+https://www.youtube.com/watch?v=_tqBRPZOvfM
+
+Let's talk about Titanoboa.
+
+So what is Titanoboa? It's a Python library that provides a built in Vyper interpreter, with some pretty nifty features. Things like gorgeous tracebacks, forking mode, and advanced debugging features. You can think of it like a premium Pythonic web3 developer experience, that's only accessible to people who understand Vyper. And fortunately for you, Vyper nowadays is even easier to learn than Solidity.
+
+Check out our tutorial series on getting started with Vyper, and you'll be able to understand how to build an entire Vyper application in just a few videos. Because Titanoboa is a Python library that works in any Python environment, it could be used, for example, in pytest. You could use it to replicate the testing features of Brownie. Or even better, a lot of people prefer to use Jupyter notebooks to regular Python.
+
+Well, fortunately, because it's just a library you can import, Titanoboa works seamlessly within Jupyter notebooks. So you could, for example, run complex data analyses, share them with your friends and then have them be able to run it too without complicated installs, and even deploy smart contracts from the comfort of your own browser. In fact, for this tutorial series, we're going to be producing a series of Jupyter notebooks.
+
+We're going to use the powers of Titanoboa to launch a memecoin, and we'll use Titanoboa to show off how we could pair it with $crvUSD in Curve's new Llama Lend markets. The results are going to be a series of Jupyter notebooks, which you could easily download and run yourself. Sounds like fun. In fact, in this video we're going to show you how quick and easy it is to get started using Titanoboa, and even use it to launch a memecoin.
+
+Let's dive in. Let's get to business. We'll set up a `virtualenv`. Call it `boa-env`. Go ahead and activate it. And within this, we'd like to get a few libraries in there. To get boa (aka Titanoboa) it’s just `pip install titanoboa`. One of the toughest parts about that is just remembering how Titanoboa is spelled.
+
+That's Titan-o-boa with an “O.” Once this installs, we're going to install Jupyter notebooks, which you'd think would be tougher to remember the spelling of because they have that intentional “y” instead of the planet, which is a letter “i.” But once this is installed, we'll add in one more library, which is super helpful for anyone who works within Vyper, and that's snekmate. So snekmate is a bunch of Vyper smart contract building blocks, including an out-of-the-box ERC-20 token that you can completely work with and just launch and deploy as it is. It's very good, very gas efficient and comes with that EIP-2612 implementation which makes it particularly cool. So this is just `pip install snekmate`
+
+So three quick pip installs and we're ready to launch our Jupyter notebook. There's one more thing, which is that within this directory we've gone ahead and downloaded one demo file. You can see it here, `demo_token.ipynb` Lest you think we're cheating, if you just visit https://try.vyperlang.org/ First of all, it's a complete in-browser environment with titanoboa already installed, so you can skip everything that we've done so far.
+
+You can just get started building your own Jupyter notebooks within here. And even better, a bunch of other people have already done so and shared their work. So you can actually see a bunch of sample smart contracts using Vyper and titanoboa to give you inspiration. It can be a good thing to look over while you wait for us to release the next videos in this tutorial.
+
+We're looking within Charles Cooper's folder. He's got a demo token and this just launches a memecoin, so we'll talk you through it. We've download it into our local environment. Let's go ahead and load it up. So we already installed snekmate. We don't need to go ahead and do this. This is just the syntax we use within Jupyter notebook to actually run on the command line.
+
+You can see the exclamation point at the beginning just treats it like a shell script. From there we `import boa` and then we have to set boa as the browser environment, which tells boa that we're working within a Jupyter notebook. From here we are going to access the local `boa.env` aka environment variables and we're going to tell it which chain idea we'd like to work off of.
+
+In this case, we're going to work off of Sepolia. So our Rabby Wallet already has some Sepolia testnet Ethereum and you can see Rabby sitting up here getting ready to accept commands now. Next, we have to import from snekmate, which we already took a look at their ERC-20 implementation. And then finally, if we browse through these snekmate `src` and actually look at the token, you can see that the `__init__` script, which is what we're going to call here, is asking for a few of the required variables.
+
+The name symbol initial supply followed by the user readable string name of the signing domain for EIP-712 and the maximum 20 character main version of the signing domain. This demo token just left a blank, so we'll just go ahead do the same. Calling it `Vyper wif hat` and we're deploying 100 million of these tokens. So once we run this cell, it's going to load up Rabby.
+
+We'll go ahead and confirm it. And this is going to note that it's already broadcast the transaction on the Sepolia network. This means if you go to Sepolia testnet and you type in this transaction, you'll see that it's already picked up the transaction, but it's not yet being indexed. Gas... pretty expensive. And here it's already picked up within Titanoboa that the contract has been deployed.
+
+So we actually now could access our memecoin at this address and interact with it in other cells here. 0xa2e... Sepolia hasn't quite figured it out yet, but it will very soon. So as you can see, we were able to, within just about 5 minutes, launch our own memecoin using Titanoboa, and we went the deluxe route of installing it on our local machine.
+
+You could have done so directly on https://try.vyperlang.org/ You could, instead of connecting the Sepolia, connect it to mainnet or any sidechain and have your own memecoin ready to go. So if you got questions about this, definitely drop them in the comments.
+
