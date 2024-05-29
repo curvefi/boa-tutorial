@@ -15,6 +15,7 @@ Each lesson will contain a downloadable Jupyter Notebook.  The contents of this 
 ## Main Series
 
 * [Lesson 1: Launch](lesson-01-launch/)
+* [Lesson 2: Fork](lesson-02-fork/)
 
 ## Links
 

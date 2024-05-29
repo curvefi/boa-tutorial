@@ -1,0 +1,36 @@
+https://youtu.be/AkYMDVmcaYw
+
+Behind me you can see Curve Llama Lend on Arbitrum. We'd like to show off how easy it is to use Titanoboa to launch our own memecoin market here. But we don't actually want to launch one. So we're going to fork Arbitrum and launch it onto this forked instance. It's time to fork around and find out.
+
+Every market that you see on Curve Llama Lend, whether mainnet, Arbitrum or any other deployment since this video's come out, have all been derived from this OneWayLendingFactory contract. So this contract is pretty cool. We definitely recommend that you take a look at the GitHub repository, read through it. If you'd like to develop against Curve Llama Lend, you could just deploy this contract to your local development environment or perhaps deploy it to a testnet.
+
+But now that it's already been deployed to all the relevant blockchains, it's probably just easier to simply fork those blockchains and work against them. We saw that when we were doing our Brownie tutorial. We saw that in our Ape tutorial. And Boa also makes it very easy to work against a forked copy of the mainnet. With this and every single unit going forward, we're going to include a pair of Jupyter notebooks.
+
+There will be the unsolved version, which will look more like the video here. It's going to have comments where you should enter code yourself. And there's going to be a solved copy, where if you actually just run and execute it, it should work properly and you'll see output very similar to the output that's in here by default. This saves us a lot of issues, like having to retype all this from scratch.
+
+We're just going to focus on the relevant commands that are new within these videos. So for this case, we're importing boa, we're importing snekmate, just like the previous unit. And for our sake, we've stored some API keys in our local environment variables. We're just storing them in a .env file, and we're using `python-dotenv` to load them.
+
+This is optional. If you'd like to store it this way then you should run `pip install python-dotenv` and set up your .env environment variables. Similarly, whether or not you do it that way or the less recommended way of just kind of pasting it in here... because it doesn't matter if someone steals your key because maybe
+
+you're on a free tier... either way, we do recommend that you take the time to register these keys. For the sake of Alchemy, they operate RPC endpoints that you can connect to. They can all be forked and they provide a great developer experience. And for the sake of Arbiscan, they'll give you five API calls per second, which should be more than enough.
+
+This is very useful because all the contracts’ source codes generally find their way to being uploaded to Arbiscan, or for Ethereum, Etherscan. And if you don't want to mess around with pulling the ABIs yourself, you can just download them directly from all these relevant block explorers. So with that, and we've pasted the factory address in here,
+
+let's get to work. The first thing to know is just simply how to set up your local environment to work against a forked RPC node. And as we mentioned, it's very easy. The Titanoboa documentation available at https://titanoboa.readthe.docs.io/ will include a lot of good information, but as you'll see, the Titanoboa progress is very fast and even this entry is already out of date,
+
+which we'll show off in just a second. But the relevant section of `boa.env.fork(RPC_URL)` that's all the same. So if you go ahead and replace this with `boa.env.fork` and pass in `RPC_URL`, we should see that the current block number in fact updates. This is the part that's different.
+
+You might notice that it's no longer using the exact same command. If we actually try and copy the command that's in the documentation here, you will see that it is in fact out of date. So this has been renamed. There's good reason for it on the developer side of things. So you can read through the developer commits to understand the madness behind their methods.
+
+But the important thing is that it's now including these patches, which only some of which exist. You could actually contribute here yourself. If you learn to read through the Titanoboa source code, you'll be richly rewarded in terms of the understanding of how it actually works. So here's `fork_rpc()`, and here's where we pull in the block number from these patches, which we'll cover in a future video.
+
+As you can see we're connected. So with our connection we're going to go ahead and redo everything we did in the first video. We've again not re-covered this. You can go back and watch through the prior video. But we've deployed a meme coin, which we'll be using in future units, and you can see that is now being deployed against a actual forked copy of the mainnet.
+
+So the final thing we need to do is we need to load the Llama Lend Factory. So if this cell executes properly, you'll actually be reading live blockchain data. Right now. There's nine Llama Lend markets on Arbitrum. By the end of the next video, that will increment by one because we'll be deploying one to it. But first we need to learn how to load a factory.
+
+So this also exists within the Titanoboa documentation. The command is pretty simple. `boa.from_etherscan()` By default, it's going to be set up to ignore some of these other parameters, other than the contract address, but we want to pass them all because this is not going to be working against Etherscan, this is going to be working against Arbiscan.
+
+So we're going to do a, simple `boa.from_etherscan()` One of the reasons that people like Jupyter notebooks is if you click Shift+ Tab on it, it's going to actually read docstrings or relevant documentation about this function that we’re able to call. So we see that, we are able to pass the `FACTORY_ADDR` from above.
+
+Following that, we need the name, which we'll call “Factory.” We need the `ARBISCAN_API_ADDRESS` and the `ARBISCAN_KEY` and we should be off to the races. Indeed. You can see there are nine Llama Lend markets on Arbitrum, but if you stay tuned for the next video in the series, there will be ten Llama Lend markets on this forked version of Arbitrum. Stay tuned.
+
