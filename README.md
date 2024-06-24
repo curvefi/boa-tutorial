@@ -9,13 +9,13 @@ Companion repository for Curve's [YouTube Titanoboa Tutorial](https://www.youtub
 This tutorial covers how to launch a memecoin and manage it on [Curve Llama Lend](https://www.youtube.com/watch?v=xZ5yPd7rIEg&list=PLVOHzVzbg7bFkpn3K1duCvRPKwREWP1SQ&pp=gAQBiAQB) using Vyper's Titanoboa.
 
 To complete this course we recommend you have a basic understanding of Vyper, which you can obtain by completing the companion [Vyper Tutorial](https://github.com/curvefi/vyper-tutorial).
-
 Each lesson will contain a downloadable Jupyter Notebook.  The contents of this repository will also be mirrored at [try.vyperlang.org](https://try.vyperlang.org/hub/user-redirect/lab/tree/shared/zcor/boa-tutorial)
 
 ## Main Series
 
 * [Lesson 1: Launch](lesson-01-launch/)
 * [Lesson 2: Fork](lesson-02-fork/)
+* [Lesson 3: Magic](lesson-03-magic/)
 
 ## Links
 

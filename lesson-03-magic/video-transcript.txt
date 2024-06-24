@@ -1,0 +1,32 @@
+We're just about ready to deploy our memecoin market to Curve Llama Lend on a forked Arbitrum network. All we need is an oracle and a little bit of magic.
+
+This unit picks up exactly where the prior unit left off. So if you haven't checked out the previous video in the series, we strongly recommend it before we dive into this one. In fact, you'll notice the Jupyter Notebook is almost exactly the same. The one difference being that within the setup cell, we've added loading the boa IPython extension and some of these might be familiar to you.
+
+Maybe you saw the percentage sign type commands in Jupyter notebooks and were too afraid to ask. So, IPython is short for Interactive Python. It's an enhanced interactive shell that provides a rich toolkit that's going to allow you to write and execute Python code a lot more efficiently, and one of its cool standout features is these so-called magic commands.
+
+We weren't using the term "magic" flippantly in the intro. We actually use all these magic commands very frequently. They have a lot of built in commands that are going to turn your coding skills into superpowers. For example, one that we use pretty frequently is %timeit. If you've ever had to deal with benchmarking performance of a script, the %timeit command is going to just, by default, tell you how long it took to execute certain cells or commands with these so-called magic commands.
+
+There's two types. There's *line mode* and *cell mode*, *line mode* are any commands with a single percentage sign that just runs and executes that line magic on that specific line and *cell mode* will transform that entire cell. So we'll dive into these as we go through. If you'd like to know what commands you have available to you, you can run the %lsmagic magic command, and it's going to show everything that's loaded.
+
+And if you've done this right, you'll see that you should have a few TitanoboaMagic commands properly loaded and ready to roll. Other than that, we will continue up until we get to the point where we've deployed. We've read the factory. We know there's nine Llama Lend markets on Arbitrum according to this forked main net. And in order to launch our own pool, we're going to need an oracle for it.
+
+Now, proper oracle design is tricky. We have here some of the information about Curve factory oracles. So every new pool within Curve comes with a built-in oracle. It's a pretty cool feature. And they can be used for Llama Lend, but if you're ever building anything involving oracles on mainnet, we highly recommend that you talk to some experts first, because we've seen so many hacks involve manipulation of oracles, and building out robust oracles that are not subject to manipulation can be very difficult.
+
+But for the sake of this unit, we're working off of a forked mainnet, this is not anything we want in production. We just know that in order to deploy this pool, we need an oracle. So let's look at the Curve stablecoin test suite. When Mich was building this out, he needed a way of playing with oracles and changing the price of these assets to see how Llama Lend and crvUSD would handle rapid or gradual changes to the price.
+
+This is important because within Llama Lend, it needs to know the current price of the asset so it can know which band of collateral the price currently sits in, and thus is subject for trading in the AMM. So here's a beautifully simple Vyper contract. All it does is it allows an admin to set the price, and anyone can read the price.
+
+Now if you want to load this, it hasn't been deployed the mainnet as you can see. So how are you possibly going to get this within your Jupyter Notebook? You could save it on your local machine and then load it, but one of the cool things about Vyper is one of the built-in cell magics it has is IPython %%vyper cells.
+
+So as you can see from this example here, we're importing boa, forking, loading the extension. And then we've got a double percentage sign indicating cell magic. The Vyper command that we saw earlier. Following that there's a variable in this case whatever you want to name the following code. And everything after that is just Vyper code that gets interpreted, compiled and stored into this variable.
+
+So in this example, it's pretty similar to the type that we would like to use. We'd like to then take that, deploy it. So let's go ahead and do the same. We'll say this is %%vyper We'll call it a dummy_oracle. And then we'll paste the code in. And as you can see this works out of the box.
+
+So we can now deploy our dummy_oracle. It needs an admin address and a price. So we'll go with Boa’s EOA. This gives you the current account that Boa is using whenever it's executing any commands. Makes it convenient. And then the price we'll set to ten to the 18th.
+
+Now we've got a dummy oracle deployed at a new address. It's set the oracle price, which it read from here, as ten to the 18th. So we have everything we need to actually deploy this. We'll go ahead and run it because it takes a couple seconds. We'll note that, we got these parameters from lesson six of our Ape tutorial, in which we read this from the actual deployment on chain.
+
+This has gone ahead and deployed. We now have ten markets on Llama Lend. All we needed for this was we need to set the stablecoin and the collateral token. These are the two coins the pool is using as well as the oracle. Everything else is just numeric parameters. And of course we called it VyperWif because now we have a working “Vyper Wif Hat” market, which we could use for any type of development stuff that we like to play with.
+
+Good stuff. A lot of fun. if you have any questions, make sure to drop them in the comments. But stay tuned because we got a lot more to cover.
+
