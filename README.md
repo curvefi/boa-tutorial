@@ -16,6 +16,7 @@ Each lesson will contain a downloadable Jupyter Notebook.  The contents of this 
 * [Lesson 1: Launch](lesson-01-launch/)
 * [Lesson 2: Fork](lesson-02-fork/)
 * [Lesson 3: Magic](lesson-03-magic/)
+* [Lesson 4: Blueprint](lesson-04-blueprint/)
 
 ## Links
 

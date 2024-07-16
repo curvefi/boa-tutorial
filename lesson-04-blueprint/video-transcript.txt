@@ -1,0 +1,56 @@
+In this unit, we'll be finalizing a few important prerequisites with our new memecoin market: creating a loan, and creating liquidity pool for arbitrage traders. In order to accomplish these tasks, we're going to be showing off how to work with blueprint contracts using Titanoboa.
+
+Before we get going, a quick reminder that all of these videos are sequential, so we strongly recommend that you work through the prior three lessons before you get going into this one. To help you out, we've taken everything that we accomplished in the first three lessons and squashed it into this `redux.py` file, which we're just importing in the first cell so we don't have to redo everything we've done before.
+
+This gets us up to speed with everything in prior units, like launching our memecoin token and then using the factory to create a lending market against it. For every Llama Lend market that gets launched., you can see in the UI here that it's deploying a whole suite of contracts. The AMM, the controller, the monetary policy. All these contracts simply get launched with the correct settings whenever we use the factory.
+
+If we look into the factory contract here, you can see under the hood how it works. Essentially it's been initialized with some implementation contracts. These are just pointers to onchain addresses that store all the templates for the contracts. These are referred to as implementations or blueprints. When you call the factory, it simply reads the blueprint contract from the target address on chain and deploys it with all the correct initialization settings.
+
+You can see a good example of it down around here, where the price oracle is created from the blueprint. We're not going to get into too much detail about this, but we do urge you to check out the Vyper documentation. The Vyper documentation shows a few built in functions that has for contract creation from onchain addresses. You can see `create_minimal_proxy`, `create_copy_of`, `create_from_blueprint.`
+
+For our sake though, what we care about is simply how do we deal with these onchain. We're going to be using Titanoboa to load these from implementation addresses. So in previous units we had it easy. All the contracts we were dealing with were already deployed onchain, so when we forked the mainnet we were able to just pull the ABIs from Etherscan.
+
+In this case we don't have the luxury of doing that because we've launched new markets that haven't been verified on chain. Fortunately, it's pretty easy because all these implementation contracts have already been verified on Etherscan, or Arbiscan in this case. So all we need to do is pull in the ABI from the implementation contract and create a contract object using it.
+
+So our task here is to cobble together this `load_from_impl` function. All it's going to do is it's going to read the blueprint ABI that's been uploaded to Arbiscan and apply a contract object using it. So as we mentioned in prior lessons, Titanoboa richly rewards people who just read through the source code. So if you look through the `interpret.py` file, you can see that there's already the `from_etherscan` function that we used in the previous unit.
+
+It has all the logic that we need. It fetches the ABI from Etherscan, or in this case, Arbiscan, and it returns what's called a `ABIContractFactory.` So we can just mimic this logic exactly. The only difference is that we need to separate out the address. So there we have one address for the implementation contract, and we apply it to a contract at a different address.
+
+In order to get this going all we need to do is copy over the same imports that it is using. It's using the `ABIContractFactory` and it's using the `fetch_abi_from_etherscan` function, and from this it's going to be fetching the ABI from Etherscan, but in this case it's using the `abi_addr` and instead of the URL and API key, we have previously hardcoded this as the `ARBISCAN_API` and `ARBISCAN_KEY.` Then from here it's going to be returning this `ABIContractFactory` object, but it is now at the `contract_addr.` This is now going to go ahead and load these, and you can see we've loaded the three contracts: the vault, the controller and the AMM, from the relevant implementation contracts that are in the factory's `vault_impl()`, `controller_impl(),` and `amm_impl().`
+
+Simple as. 
+
+Now, let's apply this new market that we created with $crvUSD. On sidechains, $crvUSD itself functions like a blueprint contract. It's a dumb template with the standard ERC20 functionality, plus the ability to, let's say mimic... interact with a bridge. Here you can see the $crvUSD contract, which is Solidity. You might say, why is Curve using Solidity?
+
+Curve only uses Vyper. Well, on sidechains, when you are launching a contract, essentially what you're doing is you are just deploying these templates from, in this case, the Arbitrum token bridge contract. Looking through the Arbitrum repo, you can actually see what this `L2GatewayToken.sol` contract looks like. It's a simple contract with this `bridge_mint` function built in.
+
+This `bridge_mint` function has the property that it can only be called from this gateway address. Fortunately, Titanoboa lets you simulate any call from any address, as long as you're just working against, like, a forked mainnet like we are. So all we need to do to get $crvUSD into our account is to spoof this address and tell it to make a call to mint whatever we'd like.
+
+Within Titanoboa the specific function that we need is called `prank`. In the previous unit we saw the `eoa` address. This is just the default address that the context manager is using to interact with any contract. Now for our case we're going to use this `prank` function. Anything within the block after you `prank` an address is going to execute from that specific address and then when it's done it's going to revert back to the `eoa` address. We're going to use this to set the minter address. That is defined as the `l2Gateway.` Once we've spoofed this address we're going to be able to mint whatever we like for $crvUSD. Within this we're going to copy over this here `boa.env.prank`
+
+We'll set the address as the $crvUSD `l2Gateway`. And then with this we're going to be able to call the `bridgeMint` function.
+
+We'll simply set this to the user that's receiving the tokens and the amount of tokens that they're receiving. If this works we will see... what’d we do wrong... that we initially have zero $crvUSD and now we have 100,000 $crvUSD. So we're going to make Jerome Powell blush there. Depositing $crvUSD to the vault contract.
+
+We'd like to take out essentially a test loan, but to do so this vault contract needs to be funded with $crvUSD. So we've minted 100,000 $crvUSD to ourself in order to supply it to the vault contract. All we need to do is approve $crvUSD to work with the vault and then deposit it saying the balance that we'd like.
+
+If this works, we're going to take the 100,000 $crvUSD that we minted and deposit it to the vault contract. As you can see, 100,000 is moved from the user to the controller contract. Pretty easy. Taking out the test loan is just a touch more complicated. Not that much. But, within $crvUSD and Llama Lend markets, we have this concept of bands where you deposit your collateral over a range of bands.
+
+A narrow range of four is the riskiest. The largest of 50 is the least risky. We'll go ahead and set the number of bands to four here. We'll take the hundred thousand in $crvUSD or, rather $VyperWifHat token as collateral. We'll call the controller’s `max_borrowable` function to see, at this number of bands how much we could mint. We’ll approve it.
+
+Then we'll create a loan setting the number of bands and the borrow amount. So in this case, 100 million VyperWif is used, and we are able to take out $100,000 dollars using this massive amount of collateral. Next up is we need to create our Curve pool. In order for lending markets to be successful with Llama Lend we need healthy liquidity pools in which arb traders can arb trade the token. If there's no arbitrage traders, the soft liquidation mechanism is not going to work. And in the next unit, we're going to show off how to actually perform liquidations on $crvUSD. But in order to do so, there has to be a healthy liquidity market. So all these parameters here, they look complicated.
+
+They've been covered in previous units. the important thing to note is that these are just the sort of default parameters when you launch a crypto V2 pool. So we've gone ahead and plugged them in for you. With all this, all we're doing is we're taking a look at the pool factory. We're able to pull this from Etherscan, which we covered previously.
+
+Then we take a look at the pool count to make sure that it's actually launching correctly. It's using an `implementation_id` because the pool factory works the same way as the Llama Lend factory, where it's got several different implementation contracts that it points to onchain, and they can be upgraded. We deploy our pool and given that pool, we confirm that it's been deployed.
+
+If so, we're going to again use our implementation contract because this new pool that we deployed isn't verified, but the implementation contract has been verified. If we run this, then we're going to be able to take a look at the pool which was successfully deployed to this address. Finally, all we need to do is seed the pool.
+
+As mentioned we want the pool to be healthy. So we're going to create an amount of liquidity in this pool that dwarfs the amount of our loan value. Otherwise we might run into trouble. So we created a loan for 100,000 curv USD. We're going to seed 10 million to this pool just to make sure that there's sufficient liquidity.
+
+If there's not sufficient liquidity. Then it might be impossible to perform liquidations or just not profitable for arb traders to do so. Just a reminder that if you're thinking of launching a Llama Lend pool, you need to have a very healthy amount of liquidity. In this case, we're calculating the parameters of the pool, making sure that we are able to mint it.
+
+If we do, we go ahead and mint ourselves some $crvUSD out of thin air. We approve it. We approve the collateral token and we will seed our pool. If all works well, we will have received 10 million LP tokens back. We know we covered a lot of concepts here and we moved pretty fast, but now we're ready to play. In the next unit we will get into how to arbitrage trade using all of this that we set up. 
+
+If you got any questions, definitely drop in the comments. Stay safe out there, frens
+
