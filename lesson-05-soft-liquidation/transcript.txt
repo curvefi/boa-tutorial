@@ -1,0 +1,43 @@
+Let's get into the good stuff! Soft liquidations, featuring Boa’s anchor mechanism.
+
+As always, we're going to encourage you to check out the prior four videos. They cover how we set up Boa, how we launched all these contracts, and we've just gone ahead and squashed everything into a single file to make it a little bit quicker. We would urge you to go through the full guts in case you're confused about how we set anything up, or to pop in the comments and ask questions.
+
+So for this particular Jupyter notebook we are, for you, setting up some approvals, so we don't have to deal with approvals. We're taking $crvUSD and our VyperWifHat collateral token, and we are approving max: `2 ** 256 - 1` And as a sanity check, make sure that you have one loan already in our `VyperWifController.`
+
+We've also created some helper functions for you. The first one is pretty self-explanatory. We're just looking at the user balances for $crvUSD and the collateral token, but the second is where we're really showing off the advantage of why you might want to use Boa. Boa plays nicely with Jupyter Labs, and Jupyter Labs plays nicely with charting libraries like `Matplotlib.`
+
+This is a function that we've created that's going to show off what our collateral for this user has been deployed at within a vault. You can see that we set up a loan. The riskiest possible. This is just `n=4` bands of collateral. We took 100,000 tokens, spread it out into 25,000 tokens per band, and squashed it almost up against the current price.
+
+The current price is a dollar. So this collateral is deployed from 99.5 to 99.9 cents. In order to do this, we called a few of the functions within the AMM contract, which was deployed as this suite of deployments related to our vault. We're looking at the active band. That's where the vault is currently available for trading. We're figuring out the user's tick numbers.
+
+That was, where we saw that they were in bands one through four, to be able to basically display this. And we got the boundaries of these ticks by using the `p_oracle_down` and `p_oracle_up` function and use the `bands_y` function to figure out how much collateral exists within that band. This is pretty similar to the Curve UI.
+
+The difference is in the Curve UI, it goes the extra mile of showing you what percentage of any individual band is in collateral and which is in stablecoin. But as we go through, we're just going to show the total proportion of collateral that's being traded into and out of this. So let's show off how to do a trade. If you've done any work with Curve pool trading in the past, you'll know that one of the important things that you'll do before you actually trade in the pool is calculate how many tokens am I going to get out of this?
+
+There's always a `get_dy()` function. So a trade is swap x for y. `get_dy` says what's the change in y going to be for any amount of x that I put in. So for x value is 10,000 $crvUSD, we're going to find out as we go from 0 to 1 what's the y value that we would get out. In this case,
+
+given the current prices, given the current balances of the AMM, it's willing to trade 10,000 $crvUSD and give back 9,971 collateral tokens. We say, “Okay, that's a fair trade, let's go ahead and do it.” The only difference when we actually run the exchange function is we are going to pass this fourth parameter, which is the slippage tolerance.
+
+We're taking this y value. We're saying we're willing to take 99.9% of that. In other words 0.1% slippage. And if this is the case, let's see what our first and final user balances. is and show the result. So we have indeed taken 10,000 tokens, and our collateral has gone from 89.9 to 89.909. And you can see accordingly, about 10,000 tokens have been drained out of band one.
+
+This is the soft liquidation mechanism. The only difference is when it's real tokens on line: here you're buying collateral tokens, and maybe you have in mind that you're going to take those collateral tokens and trade them into the LP pool where you're getting a better price for it. So you might take these tokens and say, all right, I can pay these in the pool and get, get more than 10,000 tokens out.
+
+So it would actually be profitable for you to make the trade. this is where the `get_dy()` function would tell you if the token trade is actually worth it. Imagine you just wanted to simulate the trade, because maybe you're not exactly sure if the pool is going to work properly. We're working against a forked mainnet, so we can actually just play with the state of the chain all we like.
+
+We did this in brownie a lot. We would time travel, so we'd run some code and then we'd go back to a previous marker. If we want to do the same thing here, we can use the boa `anchor` function. First we'll just again use `get_dy` to say if we're trading coin 0 ($crvUSD) to coin 1 (collateral token), what can we expect.
+
+And then from there, we'd actually just like to test this trade. Boa uses the `anchor` function to handle this. The `anchor` function kind of sets a snapshot, and then anything within the indented block of code it will execute. But then when the indent ends, it's going to revert back to that anchor point. So it's a pretty elegant way of doing this.
+
+It makes a lot of sense. It's very pythonic. you can see the example here. It's incrementing a value and then when it's done, it's reverting. Exactly what we need. We're going to show off running a trade the exact same way. That would be `with boa.env.anchor():` We will run this block of code and we'll trade another 25,000 tokens.
+
+And this has given us... it's eaten into all of band one, and we're now onto band two is now the active band. Our ending balance of $crvUSD has gone from 88K down to 63K. Our collateral shot up by almost the same amount. But then when we run the user balances function here, this next cell, we find out that everything just reverted back to the way it was.
+
+We still have 88K $crvUSD and 89.9 collateral. Great for simulating results. You can imagine how this can be very useful. And finally, of course this works just the same the other direction. If you'd like to trade your tokens back into the AMM and take out all the stablecoins that exist, you can again call the `amm.get_dy()` function.
+
+Except in this case, instead of trading from coin 0 to coin 1, you can trade from coin 1 to coin 0 and see if it's worth it to you. In this case, it's kind of a bad trade because you're trading in 25,000 collateral tokens and getting back 10,000 $crvUSD, so this would be a bad trade. You probably could have just traded the 10,000 tokens in,
+
+This is where you might have wanted to use the `get_dx()` function, which is saying how much given an x, how much x would I need to put in to get out 10,000 $crvUSD tokens? But all the same, this has done a good job of reverting this pretty much back to the original state. the only difference is that, we have are a little bit shorter on the collateral
+
+but we're pretty close to back to the original $crvUSD, and now the collateral is distributed across four bands. We've showed off a lot in this unit. We've showed off, how you can basically manipulate the state of the chain using the `anchor` function and we've showed off how you can chart the results nicely using `Matplotlib` and Jupyter Notebook.
+
+If you got any questions, do drop in the comments. Make sure to stay safe out there, but at least now you know the basics of soft liquidation. Next unit we're going to get into harder forms of liquidation. So stay tuned.

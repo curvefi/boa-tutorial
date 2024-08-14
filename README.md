@@ -17,6 +17,7 @@ Each lesson will contain a downloadable Jupyter Notebook.  The contents of this 
 * [Lesson 2: Fork](lesson-02-fork/)
 * [Lesson 3: Magic](lesson-03-magic/)
 * [Lesson 4: Blueprint](lesson-04-blueprint/)
+* [Lesson 5: Soft Liquidation](lesson-05-soft-liquidation/)
 
 ## Links
 
