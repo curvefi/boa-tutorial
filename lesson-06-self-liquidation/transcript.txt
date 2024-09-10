@@ -1,0 +1,40 @@
+The prior unit, we looked at a soft liquidation, which it turns out there's a lot of examples of those on chain because you'd really like to max borrow against the bleeding edge. But what's a bit rarer in llama land is hard liquidations. And this is because soft liquidations are doing a very good job of protecting health. So you don't get in the case where you have to be hard liquidated.
+
+But it does happen some time. And because it's rare, it's pretty useful to simulate these using Bowa. So as with the previous units, we've compacted a lot of our work into some auxiliary files. These include some functions that just help display some basics. And we've also included this plotting library so you can see what's going on with the actual, state of the markets.
+
+To talk about the initial state here, you can see that the user that we're looking at has taken out a loan instead of Max borrowing, where they previously had closer to 100 K, they only got about like 78, 79 K this time. still have a lot of their collateral Viper with Hat token. And currently the oracle prices are set to a dollar.
+
+So no one is subject to liquidation. This user's the only person in the vault in the previous unit we max borrowed. As mentioned this case, we only about 80% borrowed. So even though it's still a fairly risky and equals for bands, the hope would be that crypto markets are relatively stable and this user doesn't get hit. But we know that crypto markets are not stable, especially when it comes to meme coins.
+
+So let's go ahead and simulate, run of the mill 25% price new. Because, you know, that happens all the time with meme coins. In order to drop the price, we simply take the Oracle, which if you look back a couple of units, we, actually just deployed a very simple Oracle contract where we could set the price at will and we're going to set it to 75% of the current price.
+
+And you'll notice something interesting when you look at the vault summary here, which is that the oracle price is all the way down to $0.75. But the AMM hasn't caught up yet, so there's no users subject to liquidation. If you look at the chart here, there's a bit of a lag, and that the AMM has this exponential moving average which is designed to kind of protect a bit against these sudden price wicks.
+
+So even though it's actually at $0.80, and no one's available for liquidation, the oracle is a bit lower. So if it stays on $0.75 for a few blocks, then we're going to know that our users are going to be in trouble. Well, let's go ahead and time travel. When we were dealing with Brownie, we saw it was pretty useful to time travel to deal with things like going into the future and claiming rewards or testing four years of veCRV locking.
+
+It turns out that Boa also has a very useful feature called, directly, `time_travel` and this function you can pass the argument of seconds, blocks, blocks_delta, whatever is most convenient for you. We'll go ahead and run a `time_travel`. We're going to just type `boa.env.time_travel(blocks=10)` and this is going to, when you run, this finally catch up the `oracle_price` and the `amm_price`.
+
+So now we can see this blue line and this red line have caught up. And indeed this user is now subject to liquidation. So this could be a bot that does it. It could be someone else. But we're just going to run a self liquidation because we say “All right, well, the price dropped. It's going to be better off just going ahead and closing this, no harm, no foul.” It kind of acts like a stop loss. First thing we need to do is we need to figure out what's the value of $crvUSD that we're going to need to liquidate ourself. So if you take a look at the $crvUSD controller, it comes with a helpful `tokens_to_liquidate()` function, which is just the amount of stablecoin you have to have in the wallet to liquidate a user.
+
+And as you read through the function, you'll notice that this value is going to be different depending on if it's a self-liquidation or someone else. If you are not the user sending this message, then there's this concept of a `liquidation_discount` and it's more complicated. We're going to be covering these in future units, how to liquidate other users. For self-liquidation, though, we don't have to worry about that and we'll just go ahead and type this in.
+
+So if we type `controller.tokens_to_liquidate()` and pass our user, we are going to see that, because of the fact that our loan was accruing interest we actually owe in these ten blocks, we fast forwarded $0.02 worth of interest, which means we don't have enough $crvUSD in the wallet, we don't think, to actually run this, because the only $crvUSD we had in the wallet was the amount from the loan.
+
+So this puts us in a bit of a jam. We're going to need to exchange into the liquidity pool that we created. So how much do we actually need to put in, in terms of our `VyperWifHat` collateral token, to trade out and get the $crvUSD we need? This is the reason that these pools have a `get_dx()` function.
+
+So if you look at any of the `TwoCryptoOptimized` functions, the contracts include a `get_dx()` function, which is helpful. But if you read through the notes here, you'll notice a big red flag. This is just an approximate method. It returns an estimate close to the input. It's too expensive to call it onchain. So this is a guideline and because we're dealing with this offchain it's pretty cheap for us to get the actual amount. just be aware of this. If you're using the `get_dx()` function, it's not going to be perfect. So we're going to go ahead and deal with this by calling this as an integer. We'll take the liquidity pool. We'll call `get_dx()`
+
+The trade is from token 1 to token 0, and we take the amount that we need and close it off. It looks like we need 218.............. but when we actually run this as `get_dy()` to see what that gets us out and we find the were less than the needed amount, we have a loop here that's just going to ever so slightly tick that amount upwards until we get to an amount that actually satisfies this condition.
+
+So as you can see, it's like a few wei worth of difference. A few thousand way I should say, essentially zero, but just something to be aware of. Finally, if you want to now run this, we're going to set our approvals. If it's less than the amount, we're going to run this `exchange` and then we need to actually run the liquidation.
+
+To run the liquidation we’ll calculate the final amount of tokens when you liquidate, just in case it's different. We'll `assert` that this is enough tokens, and if so, we'll run an approval and we will run it! To run it, if you look at the $crvUSD controller, you can see it once again. The difference between the self-liquidation and an external user performing liquidation is this `liquidation_discount`
+
+We don't need to worry about it. Just keep it in mind for future units and we'll just go ahead and call that... not self... `controller.liquidate()`.We'll pass the user and you can pass to the `liquidate()` function a `min_x` that you hope to receive. This is going to avoid sandwich attacks. We're just running this in our local environment
+
+so we're not worried about MEV, so we're going to set that to zero. But in practice, you should set this much closer to the amount you're expecting out. And sure enough, we have succeeded. So our wallet now has no $crvUSD. The oracle price and AMM price is still the same. but there's no more users to liquidate.
+
+There's no more loans in this vault. The self liquidation was successful. So we hope this saves your skin and saves your wallet a little bit of pain. If you are playing with Curve Llama Lend. The code, as always, is uploaded to our GitHub repository as well as the try.vyperlang.org fun repo that they've got. If you’ve got any questions, drop them in the comments.
+
+But we want you to stay safe and we hope this script is doing a lot for you.
+
