@@ -1,0 +1,56 @@
+Welcome back. In the previous unit, we were able to easily run a pure liquidation. That is, the collateral that had been converted to stablecoin perfectly covered the amount of debt that the user had, so it was relatively straightforward to run the liquidation. But what happens if the user's collateral that's been converted to stablecoin doesn't cover the debt? Welcome to the world of extended liquidations.
+
+Just like the previous unit, we are working off of the outstanding work of our friend Macket. Macket's a contributor to Curve, and you can find all these sample liquidation examples in `curvefi/liquidation-demo` repo. In this case, we're working off the `full-liquidation-example.py` if you prefer to work off the raw python here, but we've taken it and put it into a Jupyter notebook to better highlight this as we go through.
+
+So in this case, because the script is so substantially similar to the last video, we’re speed running through a lot of it. If there's any questions about this, check out the last video. But we're once again creating users all the same deploying a dummy oracle, creating a new Llama Lend vault, and depositing about 10 million $crvUSD to it.
+
+A borrower will come along and take out a loan, max borrowed, of 30 bands against the bleeding edge price. Where it starts to diverge is the trader. In the previous one, we needed to convert the entire amount of collateral into stablecoins, so we were focused on `p_down`, which was the bottom of the user’s bands. In this case, we'd like to keep about half the collateral as Bitcoin and half the collateral gets converted.
+
+So we're targeting a price somewhere around the middle, and we're moving the price much faster. Last time it was swings around 1%. This time 20 divided by 19, give or take 5% swings. It still is 600 seconds between swings. So this is not occurring instantly. But, because it's such a small, small vault for the user and because, just because they happened to hit like the worst possible circumstances, the borrower is not going to last long under these trading conditions.
+
+So you can see the price moves down very, very quickly, very quickly from $62,000 down to $54,000 in the course of just a few trades... and then they say it's the upswings that kill you... the price rebounds upwards once. So three trades one direction, one trade the other direction, basically enough to completely knock this poor user out.
+
+Poor sucker never had a chance. Started at 2.5%, and with no one arbing this pool, you could see that the health dropped down to -0.5%. Now, in real life, one would hope that with that substantial amount of time, there's enough arb trades that rebalance the price. So you don't see these substantial swings unless Bitcoin's actually doing this, in which case, you know, it happens sometimes.
+
+But what the effect on this user's collateral is, is the important part. About half the collateral still is Bitcoin and the other half the collateral is still in the $crvUSD stablecoin. This is the conditions that we are looking for to show off an extended liquidation. What do we mean by extended liquidation? Let's look at an actual $crvUSD controller.
+
+This is for a different $WBTC market. And you'll see that there is a couple of functions. There's `liquidate`, which we called last time. This is a great function to call if the $crvUSD completely covers it, because you don't need to run any of this extra fancy logic. `liquidate_extended` is going to run this logic through a `callbacker` contract that you deploy onchain, that has some extra responsibilities.
+
+To understand this, let's dive into the code. When you are looking at a $crvUSD controller, whether you're calling either of these liquidate functions, it's going to end up through this internal `_liquidate` function. The difference in what goes on with this logic is whether or not you pass the `callbacker` address. If you just call the regular `liquidate` function, the address is blank.
+
+If you pass the `liquidate_extended`, then this address exists. So if the address is blank then it occurs like last time. It assumes that the user has enough $crvUSD stablecoin to cover the debt and the liquidation is simple. If you're running the extended liquidation, there's a few extra steps. Essentially, the first thing that happens is you move all the collateral to the callbacker contract,
+
+so the callbacker contract can play with the $WBTC. Then after you run this `callback_liquidate` function on the callbacker contract, it's going to pull everything back, and at that point, you'd better have enough $crvUSD to be able to cover the debt, otherwise, this whole thing is going to revert. You do not have enough proceeds to repay.
+
+If you do have proceeds to repay, then the callbacker gets both the $WBTC collateral token and the $crvUSD token and it can do as it likes with it. Makes sense. So now that we understand the flow, let's look at what an extended liquidation hard contract looks like. We're using titanoboa cell magic to be able to render this inline.
+
+And thanks to Macket again for the fantastic work on this. You can see the `callback_liquidate` function here is the function that's called by the controller, and this whole process is kicked off because we're going to deploy this contract and we're going to call the `liquidate` function to trigger the liquidation on the user, with this controller. We'll pass this `calldata` to represent the logic that we are using to trade here.
+
+So when we call this `liquidation` function, we are grabbing these amounts, and we are actually running the `liquidate_extended` function. There's some logic here for whether it's using $ETH or not. Don't worry too much about that. When the contract gets triggered and it's calling, the controller is pinging back to here the `callback_liquidation` function. You can see that the, basically, contract is setting approvals,
+
+then it is actually running using this `calldata` that was passed to it through the Curve router, all the trades. So the Curve router exists to run complex trades within a single transaction. All you need to do is pass the trading logic to it, and in this case we're going to give it $WBTC and we're going to be getting back $crvUSD.
+
+And then the final thing is, you can do what you like with it, but this contract is showing off how by default it will send to the `_for` address all the collateral token, all the borrowed token that is received from this liquidation. So we deploy our hard liquidation contract, and in a few cells we'll actually call it.
+
+Before we do, let's take a final look at the `user_state` as we go into this. You can see something interesting here. Once again, we don't have enough $crvUSD to cover the debt, which is why we have to run this. We got about $18,000 worth of $crvUSD, $37,000 worth of Bitcoin, and we've got a debt of about $49,000 to cover.
+
+So what's cool about this, and one of the reasons you might want to use the extended liquidation contract logic here if you're performing liquidations, there's a delta here of what looks like about $6,000. But in fact, remember, there's a discrepancy between the prices that we can get in this pool and the prices that we get via the AMM, we can sort of exploit this.
+
+So within this next cell, we're actually going to look at how much $WBTC do we need to trade to run this liquidation. And you can see there, this is where the bonus comes in. The actual amount of tokens that we need to liquidate is... we're looking at the `user_state` data... in other words, how much debt minus how much collateral do we have.
+
+That's the delta that we need. There's $31,000 $crvUSD that we need to make up. We can get this, calling the `get_dx` function through all this swap routing data, we can get the amount of $crvUSD that we need just from 0.5 $WBTC, but because of this discrepancy between the different prices in the contract, the actual like fair value of that is about $3,000 difference.
+
+So where here it's a delta of $6000 bucks, we can actually get $9000 bucks in profit when we run the liquidation. Not too bad.
+
+So we are running this and, you know, here we actually see how much we're expecting out. We run the liquidation. We have to pass the`calldata`. The `calldata` we're getting from here. In order to actually come up with the swap data to pass to the Curve router, you probably want to get this figured out well in advance, because the logic is, you know, it can be a bit difficult.
+
+In this case, we're taking $WBTC, we're running it through the TriCryptoUSDT pool to get Tether, running that through the $crvUSD Tether pool to get $crvUSD. You can actually have much more complex arguments, and in fact it's expecting you're going to be passing 5+6=11 values for the route and for the pools
+
+it's expecting up to five pools. So we're padding this with empty data so it doesn't have any issues with it. The swap params are in this first pool you're trading token 1 to token 0. And the second pool you're trading token 0 to token 1. You could see it can get a little bit complicated.
+
+You’re gonna want to understand this ahead of time, but if you pass it all correctly, then in order to perform liquidation, we take the hard liquidator contract that we deployed. We call its `liquidation` function. It runs that whole loop. And when we're done, the extended liquidation happened. Liquidator had no Bitcoin, no $crvUSD, ends up with pretty good deal, 0.15 WBTC and 315 dollars in $crvUSD, and the loan is closed.
+
+So you could see where you could go really crazy with this logic with the swap data. You might, for example, within this contract, maybe you'd want to convert everything to $WBTC or $crvUSD, depending on where you can get good rates. There's a lot of fun logic you can do. We're not getting into it this time.
+
+We've just shown you the basics. We hope that this is everything you need. If you run into any issues, drop them in the comments. We know we covered a lot. I'm happy to answer any questions there. Most important, we hope you all stay safe.
+
