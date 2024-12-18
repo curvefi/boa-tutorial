@@ -21,6 +21,7 @@ Each lesson will contain a downloadable Jupyter Notebook.  The contents of this 
 * [Lesson 6: Self-Liquidation](lesson-06-self-liquidation/)
 * [Lesson 7: Pure Liquidation](lesson-07-pure-liquidation/)
 * [Lesson 8: Extended Liquidation](lesson-08-extended-liquidation/)
+* [Lesson 9: Partial Liquidation](lesson-09-partial-liquidation/)
 
 ## Links
 

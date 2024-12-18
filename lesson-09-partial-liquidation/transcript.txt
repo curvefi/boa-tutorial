@@ -1,0 +1,43 @@
+Welcome back. In the prior unit, we showed off how we were able to completely liquidate a user by trading their collateral to cover their debt and wipe out the user's loan. What would happen if we just want to partially run that process? Welcome to the world of partial liquidations.
+
+It's relatively straightforward to imagine the cases where you would find it preferable to run a partial liquidation, as opposed to a full liquidation. What if it's a whale position you're trying to liquidate, and liquidating the entire position at once would tank the market. You might get rekt by slippage while trying to do it, but if you just liquidate them by nibbling away a little bit at a time, maybe it's not so bad.
+
+In this case, we're going to set this up in the same way we set up the previous unit. If any of this is unfamiliar, review the past two units and it will make more sense. For now, we're just compacting the code blocks because it's the same. We're deploying a dummy oracle, creating the Llama Lend vault, depositing $crvUSD.
+
+The `BORROWER` comes along and creates a fairly wide range loan of 30 bands, but this trader comes in and quickly nukes the price. The price collapses and the user finds himself underwater, and this represents the collateral which has now been converted if it's not there in the stablecoin. You can see they fell at this band with the price of Bitcoin around $55K, just over.
+
+And along comes the liquidator who notices this user's health is underwater. Specifically, their `user_state` looks a bit like this. They've got just under $50K in debt, and backing it is a greater amount in dollar terms, if you combine the collateral in W$BTC and the portion that's been converted to $crvUSD. So the $WBTC is worth ~$37K, the $crvUSD is worth ~$18K.
+
+The amounts combined covered the debt. Nothing new here. To liquidate the user 10%. First thing we look at is we see that, in order to get the 31K tokens necessary to liquidate, the debt immediately subtracts out the $crvUSD, but there's still a portion of the debt outstanding. In order to liquidate that fully, we need to convert 0.327 WBTC.
+
+But this would be for a full liquidation. If we're just talking about a partial liquidation, we're going to be assigning a `frac` of 0.1 (10%). That is, we would like to 10% liquidate this user. So the first thing that we need to understand is the `liquidation_discount`. We get this by calling `liquidation discount()` on the relevant controller.
+
+And when you look at the actual code that happens within the controller, in order to calculate it, it is using this internal `_get_f_remove()` function. `_get_f_remove()` is returning back this `liquidation_discount` and in order to calculate it, it is running this formula which is (1 + h / 2).... doesn't look so good here.
+
+So we've formatted in LaTeX for you to see it much more easily. The important thing to note is that `frac` is the fraction, `h` represents this particular liquidation discount. We're going to visualize what specifically it means. But when you look at the formula you'll notice that if you're talking about no liquidation discount is applied aka `h=0`... h can run from 0% to 100%.
+
+When h is zero, this becomes 1, this becomes 1. So this whole term cancels to just be 1, so you're multiplying it times this. So inside the parentheses it's (1 - frac) + frac. In other words, 1. So this whole parentheses just cancels down to one. And you're left with the amount you’re removing is exactly equal to the fraction that you're trying to remove.
+
+In other words it's perfectly linear. You try to remove 10%., you get it exactly. If h is any amount, then this term kicks in and provides this arc. So we plug it here so you can visualize exactly what's going on. So there's a very slight penalty, in other words. The case where h=0, the liquidation discount is zero, it would just be a straight line. The amount that you want to remove is the exact same. But the concept of a liquidation discount is a very, very, very slight penalty. You can see if the liquidation discount is set to h=1, this bows ever so slightly down here. If you're trying to liquidate about half, you get like hit with like maybe a 10% or so penalty.
+
+It's not substantial, but you want to just encourage people to go for the complete amount, liquidated or nothing at all. It has to, of course, exist here. Otherwise, the curve is not continuous. The math was just chosen to provide this nice continuous curve, and because it's a little bit tough to see exactly how the curve looks like on here, we do this, second visualization where we are showing the liquidation discount relative to the, the flat case.
+
+So you can see that, if h=0, it would be completely straight across. But the liquidation discount at about 50% would be about 6%. So not substantial, just provides a very slight penalty. And it's important because if you wanted to liquidate 10% at a time, you don't want to run into a situation where there could be a bonus.
+
+So you have to have the curve go down ever so slightly. We're in a situation where there's slight penalty for running this liquidation. What does this look like in this case? In this case, we see that.
+
+You would get less collateral. You'd increase the user's health.
+
+Which is another potential advantage for running a partial liquidation is you can just partially liquidate the user, and all of a sudden, their health improves slightly.  In this case, when we're trying to liquidate 10% of the debt, we only get 9.84% of the collateral. So that extra bit sticks around to actually improve the user’s situation. How would you actually run this partial liquidation?
+
+We're going to go ahead and run this, when we run this calculation, we've got the `f_remove` value, we multiply that times the amount of collateral to see how much $WBTC we're selling off.
+
+When we sell this off, we find out the were indeed hitting about 9.84%, 9.85%, which is going to be 0.065 $WBTC that we're selling. We then run the exchange
+
+`calldata` and `liquidate()` the exact same way we ran the previous unit. The only difference is we've added this `f_remove` to the function in here to only liquidate that amount that we're asking for.
+
+So we run this. We see the partial liquidation happens. Liquidator ends up getting $3,104 worth of $crvUSD, and the `user_state` previously it was just completely wiped out, but in this case, you can see that the `user_state` has improved ever so slightly. So all of these values have kind of dropped by a corresponding amount. So whereas before they were 18K $crvUSD as collateral, 0.6639 $WBTC, $49K - $50K in debt. Now they are at a smaller amount of $crvUSD as collateral. It's only taken partially from there. A smaller amount of $WBTC as collateral and a smaller debt. So the partial liquidation was successful. You could use this. You could run this on yourself to improve your health position.
+
+You can use this, to take down other users ever so slightly. Partial liquidation is yet another valuable tool that you have in your toolset. We hope of course, if you're staying onchain, you're staying safe. We hope you're not trying to take anything but technical coding advice from this, no financial advice to be proffered, but if you do have questions, we encourage you to drop them in the comments and we'll get back to you.
+
+Take care frens!
