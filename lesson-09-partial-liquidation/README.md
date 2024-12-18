@@ -42,3 +42,4 @@ When the partial liquidation is complete, the liquidator receives 9.84% of colla
 * [Boa Documentation](https://titanoboa.readthedocs.io/en/latest/api.html)
 * [Companion Thread](https://x.com/CurveCap/status/1869361548394959347)
 * [YouTube Video](https://youtu.be/UcPmIEMQ5BA)
+* [Substack Writeup](https://open.substack.com/pub/curve/p/boa-tutorial-9-partial-liquidation)
