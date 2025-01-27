@@ -1,0 +1,57 @@
+Welcome back. Behind me you can see the Curve FlashLender in action. There's $1 million sitting there, and it's yours. As long as you follow a few simple rules, you can use it to make money. Let's show off how to use the Curve FlashLender to run liquidations.
+
+For all the concerns about flashlending and its role in DeFi, the contract behind flashlending is incredibly simple. All it is, is essentially a contract which has a pretty standard interface and when you call `flashLoan()` on it, it will transfer the entire amount that you like.
+
+It will then trigger, in the contract that called this, `onFlashLoan()`, which essentially processes given this amount of token that's been transferred.
+
+And after it's done processing, if the balance is not the same, then the flash loan has failed. If it succeeds, then it logs it and returns true. Very simple concept, as you can see. The only other functions here: there's `flashFee()`, which in this case is set to zero, and `max FlashLoan()` amount, which is simply set to the balance of this contract.
+
+So very short contract for something that is processing $1 million. Curve leaves this around to assist with liquidations. As we'll see, it can happen very easily. We're working back with our original $VyperWif token to bring it back full circle. The $VyperWif token was launched with a price of $1. You can see this borrower has come in and taken out a loan of about 30 bands.
+
+And all these cells are repeats of previous units. If you want to expand it and have any questions, check the prior videos.
+
+A trader comes along and trades this in such a way where it kind of bounces around this median price, and it ends up leaving the user subject to liquidation at about halfway through their collateral price. So the $VyperWif token was at a dollar, they max borrowed, so this is between $0.97 and a $1.00, this is bouncing very quickly, and you can see that the borrower health has dipped negative, which means when you call the controller it uses to liquidate, there's one user, and they are subject to liquidation. Here you can see the state of this user, about half their collateral has been converted to $crvUSD.
+
+The other half in stablecoins. So you can't just run a direct, pure liquidation because the $crvUSD does not cover it. You could run an extended liquidation in which you convert the $VyperWif into $crvUSD, and then run the liquidation. That is the extended liquidation that we showed off a couple of units back.
+
+In this case, though, we are going to be deploying a liquidator contract.
+
+So using titanoboa’s cell magic, we're able to run this Vyper script directly in the Jupyter notebook. This is a very simple liquidation contract which is going to be utilizing the Curve FlashLender. You can see there's a few interfaces. We're interfacing with the FlashLender to run the flash loan. We're interfacing with the controller to be able to liquidate the user, as well as to grab the tokens that it's supporting and we are using the Curve liquidity pool for the $VyperWif token in order to trade the $VyperWif that we get into $crvUSD.
+
+Then here we're storing the contracts, the tokens, and what we call the `victim` and the `hero`, aka the person who is being liquidated and the person who is getting the proceeds.
+
+We set these when contract is deployed so it's going to be tied to single `flashlender` contract. It's going to be tied to a specific `controller` and a specific `liquidity_pool` for that. That's all hardcoded.
+
+We pull in the `collateral` and `crvusd` token from the `controller`. Other than that, we are ready to run a liquidation.
+
+So this is the function that we are going to be calling when we'd like to trigger the liquidation on this particular `victim` and send it to this `hero`.  We're setting the addresses as the contract storage variables. One other good way that you could do this is when you're calling a flash loan. The final argument here is an empty string of bytes. You could use this to pass the parameters directly. This would probably be slightly more of a secure way of doing it. Although of course, this is just, for the sake of demonstration.
+
+This would basically allow you to encode the victim and hero into this byte and then decode it when you receive it.
+
+We're also asking for this amount, and in this case, we're kind of going wild. We’re asking for the entire `balanceOf` the `flashlender` contract, which is currently a million $crvUSD.
+
+You might not actually want to ask for the entire amount.  You might ask for just the amount you need. But just for the sake of demonstration, we are taking the entire million and then returning it.
+
+This `onFlashLoan()` is the function that gets called by the `flashlender`. Within the scope of this contract, we have a million $crvUSD at our disposal.
+
+What we're doing with this $crvUSD is first we are setting `approve()`. We are going to make sure that we just have a ridiculous amount of $crvUSD, so when we call `liquidate()` we are approved for the max amount. This just takes from that and runs it.
+
+Now, because we saw that we are liquidating for $100,000 and there's only $50,000 in collateral, this means we're going to have, $50,000 worth of $VyperWif we're going to convert that $VyperWif back into $crvUSD in order to repay the flash loan.
+
+Here we use the liquidity pool we call `get_dy()` to figure out how much we're expecting. We will pass that as our expected parameter, so this will revert if something happens and we don't get that amount.
+
+We'll go ahead and repay the flash loan. 
+
+This is `amount` that was called in this function when we ran it. Paying back the exact amount and anything that's left over, we're transferring back to `hero` that we set when we call this function. We've deployed this, we go ahead and run this.
+
+We're setting `boa.env.anchor()` so we can go back and play with this just a little bit. This is going to revert it back to the previous state when we're done.
+
+And we are running this as `LIQUIDATOR`. We are calling `run_liquidation()`. We are sending it and when we're done, we've made $1K for our troubles.
+
+You might say, well, what if you don't want the entire amount. This is where you can actually go through and play with it. If instead of the entire amount $crvUSD, maybe you want to only get $500.
+
+In which case you could change that parameter, run a different one, and this gives us 500 $VyperWif tokens and 882 $crvUSD. You might want to do this because in the event of liquidation, maybe there's going to be, massive slippage in the pool. Or maybe you want it entirely back as $VyperWif, in which case you could calculate the exact amount that you would need using `get_dx()` and then pass this back.
+
+Really, the sky's the limit when you have $1 million to play with it's pretty easy to make money, and thanks to flash lending, you can have that power onchain. If you got any questions, definitely drop them in the comments. It's been an absolute pleasure. Stay safe friends.
+
+
